@@ -38,7 +38,7 @@
 		}
 	],
 	"require": {
-		"php": "^8.4",
+		"php": "^8.3 | ^8.4",
 		"ext-json": "*",
 		"laminas/laminas-eventmanager": "^3.14.0",
 		"laminas/laminas-servicemanager": "^3.23.1",

@@ -51,7 +51,7 @@ abstract class AbstractJob extends Message implements JobInterface {
 	 * @throws ReflectionException
 	 */
 	protected static function createEmptyJob($content = null) {
-		$job = new ReflectionClass(static::class)->newInstanceWithoutConstructor();
+		$job = (new ReflectionClass(static::class))->newInstanceWithoutConstructor();
 		$job->setContent($content);
 
 		return $job;

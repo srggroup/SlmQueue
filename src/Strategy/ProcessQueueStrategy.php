@@ -3,7 +3,6 @@
 namespace SlmQueue\Strategy;
 
 use Laminas\EventManager\EventManagerInterface;
-use Laminas\EventManager\ResponseCollection;
 use SlmQueue\Job\JobInterface;
 use SlmQueue\Worker\AbstractWorker;
 use SlmQueue\Worker\Event\ProcessIdleEvent;
