@@ -7,92 +7,87 @@ use SlmQueue\Worker\Event\BootstrapEvent;
 use SlmQueue\Worker\Event\WorkerEventInterface;
 use SlmQueue\Worker\Result\ExitWorkerLoopResult;
 
-class WorkerLifetimeStrategy extends AbstractStrategy
-{
-    /**
-     * The timestamp when the worker has started
-     *
-     * @var int
-     */
-    protected $startTime = PHP_INT_MAX;
+class WorkerLifetimeStrategy extends AbstractStrategy {
 
-    /**
-     * The maximum amount of seconds the worker may do its work
-     *
-     * @var int
-     */
-    protected $lifetime = 3600;
 
-    /**
-     * {@inheritDoc}
-     */
-    protected $state = '0 seconds passed';
+	/**
+	 * The timestamp when the worker has started
+	 *
+	 * @var int
+	 */
+	protected $startTime = PHP_INT_MAX;
 
-    public function setLifetime(int $lifetime): void
-    {
-        $this->lifetime = (int) $lifetime;
-    }
+	/**
+	 * The maximum amount of seconds the worker may do its work
+	 *
+	 * @var int
+	 */
+	protected $lifetime = 3600;
 
-    public function getLifetime(): int
-    {
-        return $this->lifetime;
-    }
+	protected $state = '0 seconds passed';
 
-    /**
-     * {@inheritDoc}
-     */
-    public function attach(EventManagerInterface $events, $priority = 1): void
-    {
-        $this->listeners[] = $events->attach(
-            WorkerEventInterface::EVENT_BOOTSTRAP,
-            [$this, 'onBootstrap'],
-            $priority
-        );
 
-        $this->listeners[] = $events->attach(
-            WorkerEventInterface::EVENT_PROCESS_QUEUE,
-            [$this, 'checkRuntime'],
-            -1000
-        );
+	public function setLifetime(int $lifetime): void {
+		$this->lifetime = $lifetime;
+	}
 
-        $this->listeners[] = $events->attach(
-            WorkerEventInterface::EVENT_PROCESS_IDLE,
-            [$this, 'checkRuntime'],
-            -1000
-        );
 
-        $this->listeners[] = $events->attach(
-            WorkerEventInterface::EVENT_PROCESS_STATE,
-            [$this, 'onReportQueueState'],
-            $priority
-        );
-    }
+	public function getLifetime(): int {
+		return $this->lifetime;
+	}
 
-    /**
-     * @param BootstrapEvent $event
-     */
-    public function onBootstrap(BootstrapEvent $event)
-    {
-        $this->startTime = time();
-    }
 
-    /**
-     * @param WorkerEventInterface $event
-     *
-     * @return ExitWorkerLoopResult|null
-     */
-    public function checkRuntime(WorkerEventInterface $event)
-    {
-        $now = time();
-        $runtime = $now - $this->startTime;
-        $this->state = sprintf('%d seconds passed', $runtime);
+	/**
+	 * {@inheritDoc}
+	 */
+	public function attach(EventManagerInterface $events, $priority = 1): void {
+		$this->listeners[] = $events->attach(
+			WorkerEventInterface::EVENT_BOOTSTRAP,
+			[$this, 'onBootstrap'],
+			$priority
+		);
 
-        if ($runtime >= $this->lifetime) {
-            $reason = sprintf('lifetime of %d seconds reached', $this->lifetime);
+		$this->listeners[] = $events->attach(
+			WorkerEventInterface::EVENT_PROCESS_QUEUE,
+			[$this, 'checkRuntime'],
+			-1000
+		);
 
-            return ExitWorkerLoopResult::withReason($reason);
-        }
+		$this->listeners[] = $events->attach(
+			WorkerEventInterface::EVENT_PROCESS_IDLE,
+			[$this, 'checkRuntime'],
+			-1000
+		);
 
-        return null;
-    }
+		$this->listeners[] = $events->attach(
+			WorkerEventInterface::EVENT_PROCESS_STATE,
+			[$this, 'onReportQueueState'],
+			$priority
+		);
+	}
+
+
+	public function onBootstrap(BootstrapEvent $event) {
+		$this->startTime = time();
+	}
+
+
+	/**
+	 * @return ExitWorkerLoopResult|null
+	 */
+	public function checkRuntime(WorkerEventInterface $event) {
+		$now = time();
+		$runtime = $now - $this->startTime;
+		$this->state = sprintf('%d seconds passed', $runtime);
+
+		if ($runtime >= $this->lifetime) {
+			$reason = sprintf('lifetime of %d seconds reached', $this->lifetime);
+
+			return ExitWorkerLoopResult::withReason($reason);
+		}
+
+		return null;
+	}
+
+
 }

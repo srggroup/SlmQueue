@@ -1,15 +1,22 @@
 <?xml version="1.0"?>
-<ruleset name="Coding Standard">
-  <rule ref="PSR2"/>
-  <rule ref="PSR12"/>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="PHP_CodeSniffer" xsi:noNamespaceSchemaLocation="vendor/squizlabs/php_codesniffer/phpcs.xsd">
+	<description>Mongator Style Check</description>
 
-  <arg name="extensions" value="php"/>
+	<file>src</file>
 
-  <file>config</file>
-  <file>src</file>
-  <file>docs</file>
-  <file>tests</file>
+	<arg name="basepath" value="."/>
+	<arg name="colors"/>
+	<arg name="parallel" value="75"/>
+	<arg value="sp"/>
 
-  <exclude-pattern>tests/integration/*/vendor/*$</exclude-pattern>
+	<ini name="memory_limit" value="256M"/>
+
+	<rule ref="./vendor/srggroup/srg_standards/src/CodeSniffer/Standards/SRG/ruleset.xml">
+		<exclude name="SlevomatCodingStandard.TypeHints.DeclareStrictTypes.DeclareStrictTypesMissing"/>
+		<exclude name="SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingAnyTypeHint"/>
+		<exclude name="SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingAnyTypeHint"/>
+		<exclude name="SlevomatCodingStandard.TypeHints.PropertyTypeHint"/>
+		<exclude name="Generic.PHP.RequireStrictTypes"/>
+	</rule>
+
 </ruleset>
-

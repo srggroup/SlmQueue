@@ -2,6 +2,7 @@
 
 namespace SlmQueue\Exception;
 
-interface ExceptionInterface
-{
+interface ExceptionInterface {
+
+
 }

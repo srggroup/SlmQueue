@@ -2,30 +2,31 @@
 
 namespace SlmQueue\Worker\Result;
 
-final class ExitWorkerLoopResult
-{
-    /**
-     * @var string
-     */
-    private $reason;
+final class ExitWorkerLoopResult {
 
-    private function __construct(string $reason)
-    {
-        $this->reason = $reason;
-    }
 
-    public static function withReason(string $reason): ExitWorkerLoopResult
-    {
-        return new static($reason);
-    }
+	/** @var string */
+	private $reason;
 
-    public function getReason(): string
-    {
-        return $this->reason;
-    }
 
-    public function __toString(): string
-    {
-        return (string) $this->reason;
-    }
+	private function __construct(string $reason) {
+		$this->reason = $reason;
+	}
+
+
+	public function getReason(): string {
+		return $this->reason;
+	}
+
+
+	public static function withReason(string $reason): ExitWorkerLoopResult {
+		return new ExitWorkerLoopResult($reason);
+	}
+
+
+	public function __toString(): string {
+		return $this->reason;
+	}
+
+
 }

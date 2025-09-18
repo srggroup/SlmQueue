@@ -14,50 +14,46 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Worker CLI command
  */
-class StartWorkerCommand extends Command
-{
-    protected QueuePluginManager $queuePluginManager;
-    protected WorkerPluginManager $workerPluginManager;
+class StartWorkerCommand extends Command {
 
-    public function __construct(QueuePluginManager $queuePluginManager, WorkerPluginManager $workerPluginManager)
-    {
-        parent::__construct();
 
-        $this->queuePluginManager = $queuePluginManager;
-        $this->workerPluginManager = $workerPluginManager;
-    }
+	public function __construct(protected QueuePluginManager $queuePluginManager, protected WorkerPluginManager $workerPluginManager) {
+		parent::__construct();
+	}
 
-    protected function configure(): void
-    {
-        $this->addArgument('queue', InputArgument::REQUIRED);
-    }
 
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
-        $queueName = $input->getArgument('queue');
-        $queue = $this->queuePluginManager->get($queueName);
-        $worker = $this->workerPluginManager->get($queue->getWorkerName());
+	protected function configure(): void {
+		$this->addArgument('queue', InputArgument::REQUIRED);
+	}
 
-        try {
-            $messages = $worker->processQueue($queue, $input->getArguments());
-        } catch (ExceptionInterface $e) {
-            throw new WorkerProcessException(
-                'Caught exception while processing queue',
-                $e->getCode(),
-                $e
-            );
-        }
 
-        $messages = implode("\n", array_map(function (string $message): string {
-            return sprintf(' - %s', $message);
-        }, $messages));
+	protected function execute(InputInterface $input, OutputInterface $output): int {
+		$queueName = $input->getArgument('queue');
+		$queue = $this->queuePluginManager->get($queueName);
+		$worker = $this->workerPluginManager->get($queue->getWorkerName());
 
-        $output->writeln(sprintf(
-            "Finished worker for queue '%s':\n%s\n",
-            $queueName,
-            $messages
-        ));
+		try {
+			$messages = $worker->processQueue($queue, $input->getArguments());
+		} catch (ExceptionInterface $e) {
+			throw new WorkerProcessException(
+				'Caught exception while processing queue',
+				$e->getCode(),
+				$e
+			);
+		}
 
-        return 0;
-    }
+		$messages = implode("\n", array_map(static function (string $message): string {
+			return sprintf(' - %s', $message);
+		}, $messages));
+
+		$output->writeln(sprintf(
+			"Finished worker for queue '%s':\n%s\n",
+			$queueName,
+			$messages
+		));
+
+		return 0;
+	}
+
+
 }

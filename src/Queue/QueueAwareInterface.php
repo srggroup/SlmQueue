@@ -2,9 +2,13 @@
 
 namespace SlmQueue\Queue;
 
-interface QueueAwareInterface
-{
-    public function getQueue(): QueueInterface;
+interface QueueAwareInterface {
 
-    public function setQueue(QueueInterface $queue): void;
+
+	public function getQueue(): QueueInterface;
+
+
+	public function setQueue(QueueInterface $queue): void;
+
+
 }

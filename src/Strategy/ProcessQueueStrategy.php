@@ -12,68 +12,69 @@ use SlmQueue\Worker\Event\ProcessQueueEvent;
 use SlmQueue\Worker\Event\WorkerEventInterface;
 use SlmQueue\Worker\Result\ExitWorkerLoopResult;
 
-class ProcessQueueStrategy extends AbstractStrategy
-{
-    /**
-     * {@inheritDoc}
-     */
-    public function attach(EventManagerInterface $events, $priority = 1): void
-    {
-        $this->listeners[] = $events->attach(
-            WorkerEventInterface::EVENT_PROCESS_QUEUE,
-            [$this, 'onJobPop'],
-            $priority
-        );
-        $this->listeners[] = $events->attach(
-            WorkerEventInterface::EVENT_PROCESS_JOB,
-            [$this, 'onJobProcess'],
-            $priority
-        );
-    }
+class ProcessQueueStrategy extends AbstractStrategy {
 
-    public function onJobPop(ProcessQueueEvent $processQueueEvent): ?ExitWorkerLoopResult
-    {
-        /** @var AbstractWorker $worker */
-        $worker = $processQueueEvent->getWorker();
-        $queue = $processQueueEvent->getQueue();
-        $options = $processQueueEvent->getOptions();
-        $eventManager = $worker->getEventManager();
 
-        $job = $queue->pop($options);
+	/**
+	 * {@inheritDoc}
+	 */
+	public function attach(EventManagerInterface $events, $priority = 1): void {
+		$this->listeners[] = $events->attach(
+			WorkerEventInterface::EVENT_PROCESS_QUEUE,
+			[$this, 'onJobPop'],
+			$priority
+		);
+		$this->listeners[] = $events->attach(
+			WorkerEventInterface::EVENT_PROCESS_JOB,
+			[$this, 'onJobProcess'],
+			$priority
+		);
+	}
 
-        // The queue may return null, for instance if a timeout was set
-        if (! $job instanceof JobInterface) {
-            /** @var ResponseCollection $results */
-            $results = $eventManager->triggerEventUntil(
-                function ($response) {
-                    return $response instanceof ExitWorkerLoopResult;
-                },
-                new ProcessIdleEvent($worker, $queue)
-            );
 
-            $processQueueEvent->stopPropagation();
+	public function onJobPop(ProcessQueueEvent $processQueueEvent): ?ExitWorkerLoopResult {
+		/** @var AbstractWorker $worker */
+		$worker = $processQueueEvent->getWorker();
+		$queue = $processQueueEvent->getQueue();
+		$options = $processQueueEvent->getOptions();
+		$eventManager = $worker->getEventManager();
 
-            if ($results->stopped()) {
-                return $results->last();
-            }
+		$job = $queue->pop($options);
 
-            return null;
-        }
+		// The queue may return null, for instance if a timeout was set
+		if (! $job instanceof JobInterface) {
+			$results = $eventManager->triggerEventUntil(
+				static function ($response) {
+					return $response instanceof ExitWorkerLoopResult;
+				},
+				new ProcessIdleEvent($worker, $queue)
+			);
 
-        $eventManager->triggerEvent(new ProcessJobEvent($job, $worker, $queue));
+			$processQueueEvent->stopPropagation();
 
-        return null;
-    }
+			if ($results->stopped()) {
+				return $results->last();
+			}
 
-    public function onJobProcess(ProcessJobEvent $processJobEvent): void
-    {
-        $job = $processJobEvent->getJob();
-        $queue = $processJobEvent->getQueue();
+			return null;
+		}
 
-        /** @var AbstractWorker $worker */
-        $worker = $processJobEvent->getWorker();
+		$eventManager->triggerEvent(new ProcessJobEvent($job, $worker, $queue));
 
-        $result = $worker->processJob($job, $queue);
-        $processJobEvent->setResult($result);
-    }
+		return null;
+	}
+
+
+	public function onJobProcess(ProcessJobEvent $processJobEvent): void {
+		$job = $processJobEvent->getJob();
+		$queue = $processJobEvent->getQueue();
+
+		/** @var AbstractWorker $worker */
+		$worker = $processJobEvent->getWorker();
+
+		$result = $worker->processJob($job, $queue);
+		$processJobEvent->setResult($result);
+	}
+
+
 }
